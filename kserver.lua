@@ -24,7 +24,7 @@ kserver.servFunc = {}
 kserver.servFunc.__index = kserver.servFunc
 function kserver.servFunc.new()
     local self = setmetatable({
-        name = "server function"
+        name = "server function",
         whitelist = {"admin", "user"}, --Roles that can invoke this {"admin", "user"}
         func = function() return "ping!" end, -- Payload function
     },kserver.servFunc)
@@ -145,7 +145,7 @@ function kserver.client.new()
     return self
 end
 
-kserver.client:request(id, msg, proto)
+function kserver.client:request(id, msg, proto)
     rednet.send(id, msg, proto)
     local rid, rmsg = rednet.receive(1)
     if not rid then return false end
