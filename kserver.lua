@@ -1,5 +1,4 @@
 --This is a very unfinished version, do not use!
---Basically bypass everything
 
 local kserver = {}
 
