@@ -1,4 +1,5 @@
 --This is a very unfinished version, do not use!
+--Basically bypass everything
 
 local kserver = {}
 
@@ -28,12 +29,14 @@ end
 
 function kserver.servFunc:invoke(user, args)
     args = args or {}
+    --[[
     for i, v in pairs(self.whitelist) do
         if v == user.role then
             return pcall(self.func(unpack(args)))
         end
     end
-    return false
+    --]]
+    return pcall(self.func(unpack(args)))
 end
 
 kserver.server = {}
@@ -51,7 +54,7 @@ function kserver.server.new()
 end
 
 
-
+--[[
 function kserver.server:startTimeoutCheck(timeout)
     while true do
         local timer = os.startTimer(timeout)
@@ -90,35 +93,36 @@ function kserver.server:clientDisconnect(id)
     if self.clients[id] then self.clients[id].remove() else return false end
     return true
 end
+--]]
 
 function kserver.server:run(protocol)
     protocol = protocol or self.protocol
-    parallel.waitForAny(function() self:startTimeoutCheck(self.timeout) end, function()
-        while true do  --Two while true loops at the same time because why not
-            local id, msg = rednet.receive(protocol)
-            --Handle main commands
-            if msg == "ks-connect" then
-                self.clientConnect(id)
-            end
-            if msg == "ks-disconnect" then
-                self.clientDisconnect(id)
-            end
-
-            if msg == "ks-getstate" then
-                rednet.send(id, {self}, protocol)
-            end
-
-            --Handle server functions
-            if msg == self.funcList[msg] then
-                local func = self.funcList[msg].invoke()
-                if func then print(id.." ran"..self.funcList[msg].name) end
-            end
-
-            rednet.send(id, "ack", protocol)
+    ---parallel.waitForAny(function() self:startTimeoutCheck(self.timeout) end, function()
+    --Ignore all timeout functionality for now
+    while true do
+        local id, msg = rednet.receive(protocol)
+        --Handle main commands
+        --[[
+        if msg == "ks-connect" then
+            self.clientConnect(id)
         end
-    end)
-end
+        if msg == "ks-disconnect" then
+            self.clientDisconnect(id)
+        end
 
+        if msg == "ks-getstate" then
+            rednet.send(id, {self}, protocol)
+        end
+        ]]--
+        --Handle server functions
+        if msg == self.funcList[msg] then
+            local func = self.funcList[msg].invoke()
+            if func then print(id.." ran"..self.funcList[msg].name) end
+        end
+
+        rednet.send(id, "ack", protocol)
+    end
+end
 
 --Client side
 
