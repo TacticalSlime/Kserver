@@ -1,3 +1,5 @@
+--This is a very unfinished version, do not use!
+
 local kserver = {}
 
 --Server side
