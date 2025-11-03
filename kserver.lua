@@ -3,6 +3,10 @@
 
 local kserver = {}
 
+function kserver.open()
+    peripheral.find("modem", rednet.open)
+end
+
 --Server side
 
 kserver.listClient = {}
