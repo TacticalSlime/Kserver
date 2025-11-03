@@ -1,4 +1,4 @@
---This is a very unfinished version, do not use!
+--Very early test build!
 
 local kserver = {}
 
