@@ -117,7 +117,10 @@ function kserver.server:run(protocol)
         --Handle server functions
         if msg == self.funcList[msg] then
             local func = self.funcList[msg].invoke()
-            if func then print(id.." ran"..self.funcList[msg].name) end
+            if func then
+                print(id.." ran"..self.funcList[msg].name)
+                rednet.send(id, func, proto)
+            end
         end
 
         rednet.send(id, "ack", protocol)
@@ -136,6 +139,13 @@ function kserver.client.new()
         serverState = nil,
     }, kserver.client)
     return self
+end
+
+kserver.client:request(id, msg, proto)
+    rednet.send(id, msg, proto)
+    local rid, rmsg = rednet.receive(1)
+    if not rid then return false end
+    return rmsg
 end
 
 
