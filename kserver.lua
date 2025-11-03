@@ -9,6 +9,7 @@ end
 
 --Server side
 
+--[[
 kserver.listClient = {}
 kserver.listClient.__index = kserver.listClient
 function kserver.listClient.new()
@@ -19,11 +20,13 @@ function kserver.listClient.new()
     },kserver.listClient)
     return self
 end
+]]--
 
 kserver.servFunc = {}
 kserver.servFunc.__index = kserver.servFunc
 function kserver.servFunc.new()
     local self = setmetatable({
+        type = "servFunc",
         name = "server function",
         whitelist = {"admin", "user"}, --Roles that can invoke this {"admin", "user"}
         func = function() return "ping!" end, -- Payload function
@@ -40,13 +43,17 @@ function kserver.servFunc:invoke(user, args)
         end
     end
     --]]
-    return pcall(self.func(unpack(args)))
+    local ok, result = pcall(self.func, unpack(args))
+    if not ok then return nil end
+    return result
 end
 
 kserver.server = {}
 kserver.server.__index = kserver.server
 function kserver.server.new()
     local self = setmetatable({
+        type = "server",
+        debug = false,
         enableClients = true,
         timeout = 5,
         clients = {},
@@ -100,11 +107,13 @@ end
 --]]
 
 function kserver.server:run(protocol)
+    if self.debug then print("Debug mode enabled!") end
     protocol = protocol or self.protocol
     ---parallel.waitForAny(function() self:startTimeoutCheck(self.timeout) end, function()
     --Ignore all timeout functionality for now
     while true do
         local id, msg = rednet.receive(protocol)
+        if self.debug then print("Debug: "..id.." - "..msg) end
         --Handle main commands
         --[[
         if msg == "ks-connect" then
@@ -118,16 +127,17 @@ function kserver.server:run(protocol)
             rednet.send(id, {self}, protocol)
         end
         ]]--
+
         --Handle server functions
-        if msg == self.funcList[msg] then
-            local func = self.funcList[msg].invoke()
-            if func then
-                print(id.." ran"..self.funcList[msg].name)
-                rednet.send(id, func, proto)
-            end
+
+        if self.funcList[msg] then
+            if self.debug then print("Debug: Func detected") end
+            local func = self.funcList[msg]:invoke()
+            print(id.." ran"..self.funcList[msg].name)
+            rednet.send(id, func, proto)
         end
 
-        rednet.send(id, "ack", protocol)
+        --rednet.send(id, "ack", protocol)
     end
 end
 
@@ -137,6 +147,7 @@ kserver.client = {}
 kserver.client.__index = kserver.client
 function kserver.client.new()
     local self = setmetatable({
+        type = "client",
         name = "Client",
         role = "user",
         rolePass = nil,
